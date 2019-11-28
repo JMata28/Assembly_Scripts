@@ -1,6 +1,14 @@
 ;Authors: José Mata (JMata28) and Kaleb Golden
-;The system we built and programmed in this lab session can light the board’s LEDs in three different patterns: from left to right, from ;right to left, and from the center out. Three switches act as inputs for the system and depending on this input, a different pattern ;will be displayed. If only the first switch is on, the LEDs will light up starting from LED8 (left), one at a time, to LED1 (right). If ;only the second switch is on, the LEDs will light up starting from LED1 (right) to LED8 (left). For these two patterns, only LED is lit ;at a time. If the third switch is on, the LEDs will light up starting from the two middle LEDs (LEDs 4 and 5), then turn off, and light ;the next two LEDs from the center out.  
-;If a combination different to the three described previously is set on the switches, the last valid pattern chosen will continue to be ;carried out. If the initial state of the switches is invalid when the program starts running, the LEDs will remain off until a valid ;switch combination is set. It is possible to switch from a pattern to a different one at any point. Each LED remains lit for around ;0.25s before moving on to the next LED and then turns off, allowing enough time for the user to see which LEDs are lit. 
+;The system we built and programmed in this lab session can light the board’s LEDs in three different patterns: from left to right, from
+;right to left, and from the center out. Three switches act as inputs for the system and depending on this input, a different pattern
+;will be displayed. If only the first switch is on, the LEDs will light up starting from LED8 (left), one at a time, to LED1 (right). If
+;only the second switch is on, the LEDs will light up starting from LED1 (right) to LED8 (left). For these two patterns, only LED is lit
+;at a time. If the third switch is on, the LEDs will light up starting from the two middle LEDs (LEDs 4 and 5), then turn off, and light
+;the next two LEDs from the center out.  
+;If a combination different to the three described previously is set on the switches, the last valid pattern chosen will continue to be 
+;carried out. If the initial state of the switches is invalid when the program starts running, the LEDs will remain off until a valid 
+;switch combination is set. It is possible to switch from a pattern to a different one at any point. Each LED remains lit for around
+;0.25s before moving on to the next LED and then turns off, allowing enough time for the user to see which LEDs are lit. 
 
 
 ;*****************************************************************
