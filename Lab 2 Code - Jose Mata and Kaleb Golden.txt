@@ -1,0 +1,259 @@
+;*****************************************************************
+;* This stationery serves as the framework for a                 *
+;* user application (single file, absolute assembly application) *
+;* For a more comprehensive program that                         *
+;* demonstrates the more advanced functionality of this          *
+;* processor, please see the demonstration applications          *
+;* located in the examples subdirectory of the                   *
+;* Freescale CodeWarrior for the HC12 Program directory          *
+;*****************************************************************
+
+; export symbols
+            XDEF Entry, _Startup            ; export 'Entry' symbol
+            ABSENTRY Entry        ; for absolute assembly: mark this as application entry point
+
+
+
+; Include derivative-specific definitions 
+		INCLUDE 'mc9s12c32.inc' 
+
+ROMStart    EQU  $4000  ; absolute address to place my code/constant data
+
+; variable/data section
+
+            ORG RAMStart
+Numbers DS.B 8
+ ; Insert here your data definition.
+Min DS.B 1; 
+Max DS.B 1; 
+Avg DS.B 1; 
+
+
+; code section
+            ORG   ROMStart
+Entry:
+_Startup:
+            LDS   #RAMEnd+1       ; initialize the stack pointer
+
+            CLI                     ; enable interrupts
+            
+ LDAA    #$FF
+ STAA    DDRA   
+ LDAB ATDDIEN        
+ LDAB #$000
+ STAB DDRAD
+ 
+ 
+
+
+
+ ;Load Numbers
+ 
+  LDAA #32
+  STAA Numbers
+  LDAA #27
+  STAA Numbers+1
+  LDAA #30  
+  STAA Numbers+2
+  LDAA #4
+  STAA Numbers+3
+  LDAA #12
+  STAA Numbers+4
+  LDAA #16
+  STAA Numbers+5
+  LDAA #1
+  STAA Numbers+6
+  LDAA #57
+  STAA Numbers+7
+ 
+;Find Minimum Value
+
+  LDAA Numbers
+  CMPA Numbers+1
+  BHS MINSAVE
+RETURN:     
+  CMPA Numbers+2
+  BHS MINSAVE1
+RETURN1:
+  CMPA Numbers+3
+  BHS MINSAVE2
+RETURN2:
+  CMPA Numbers+4
+  BHS MINSAVE3
+RETURN3:
+  CMPA Numbers+5
+  BHS MINSAVE4
+RETURN4:
+  CMPA Numbers+6
+  BHS MINSAVE5
+RETURN5:
+  CMPA Numbers+7
+  BHS MINSAVE6
+RETURN6:
+  STAA Min               
+   
+  BRA MAXFUNC
+    
+
+
+MINSAVE: LDAA Numbers+1
+         BRA RETURN
+
+MINSAVE1:LDAA Numbers+2 
+         BRA RETURN1
+         
+MINSAVE2:LDAA Numbers+3 
+         BRA RETURN2
+         
+MINSAVE3:LDAA Numbers+4 
+         BRA RETURN3
+                  
+MINSAVE4:LDAA Numbers+5 
+         BRA RETURN4
+         
+MINSAVE5:LDAA Numbers+6 
+         BRA RETURN5
+                  
+MINSAVE6:LDAA Numbers+7 
+         BRA RETURN6         
+         
+  
+  
+ ;Find Maximum Function 
+ MAXFUNC:
+  
+
+  LDAA Numbers
+  CMPA Numbers+1
+  BLS MAXSAVE
+BACK:     
+  CMPA Numbers+2
+  BLS MAXSAVE1
+BACK1:
+  CMPA Numbers+3
+  BLS MAXSAVE2
+BACK2:
+  CMPA Numbers+4
+  BLS MAXSAVE3
+BACK3:
+  CMPA Numbers+5
+  BLS MAXSAVE4
+BACK4:
+  CMPA Numbers+6
+  BLS MAXSAVE5
+BACK5:
+  CMPA Numbers+7
+  BLS MAXSAVE6
+BACK6:
+  STAA Max               
+  
+  BRA AVGFUNC 
+  
+
+
+
+MAXSAVE: LDAA Numbers+1
+         BRA BACK
+MAXSAVE1: LDAA Numbers+2
+         BRA BACK1
+MAXSAVE2: LDAA Numbers+3
+         BRA BACK2
+MAXSAVE3: LDAA Numbers+4
+         BRA BACK3         
+MAXSAVE4: LDAA Numbers+5
+         BRA BACK4
+MAXSAVE5: LDAA Numbers+6
+         BRA BACK5         
+MAXSAVE6: LDAA Numbers+7
+         BRA BACK6         
+  
+  ;Average Function 
+  
+  
+   AVGFUNC:
+   
+  
+  
+  LDAA Numbers
+  LDAB Numbers+1
+  ABA 
+  LDAB Numbers+2
+  ABA
+  LDAB Numbers+3
+  ABA
+  LDAB Numbers+4
+  ABA  
+  LDAB Numbers+5
+  ABA
+  LDAB Numbers+6
+  ABA
+  LDAB Numbers+7
+  ABA
+  
+  LSRA
+  LSRA
+  LSRA 
+  
+  STAA Avg
+  
+  
+              LDAA #$00;Set port T as input
+              STAA DDRT
+  
+  
+      
+              LDAA #$FF
+              STAA DDRAD
+  ReadInput:  LDAA PTIT
+   
+               CMPA #$00             ;If input is 00, do nothing.
+               BEQ  DoNothing
+              
+  
+               CMPA #%01             ;If input is 01, display the max value
+               BEQ DisplayMax
+  
+               CMPA #%10             ;If input is 10, display the min value 
+               BEQ DisplayMin
+  
+               CMPA #%11             ;If input is 11, display the average value
+               BEQ DisplayAvg
+  
+  
+  ;Labels to output values
+  DisplayMin:
+  
+              LDAA Min
+              STAA PTAD
+              BRA ReadInput              
+  
+  DisplayMax:
+  
+              LDAA Max
+              STAA PTAD
+              BRA ReadInput
+  
+  DisplayAvg:
+  
+              LDAA Avg
+              STAA PTAD
+              BRA ReadInput
+  
+  DoNothing:
+               LDAA #$00
+               STAA PTAD
+               BRA ReadInput
+  
+  Forever:
+  LDAA #$FF
+  STAA DDRAD
+  LDAA #$00
+  STAA PTAD
+  LDAA PTIT
+  BRA Forever
+  
+;*************************************************************
+;*                 Interrupt Vectors                          *
+;**************************************************************
+            ORG   $FFFE
+            DC.W  Entry           ; Reset Vector
