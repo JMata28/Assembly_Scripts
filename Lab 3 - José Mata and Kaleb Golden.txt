@@ -1,0 +1,237 @@
+;*****************************************************************
+;* This stationery serves as the framework for a                 *
+;* user application (single file, absolute assembly application) *
+;* For a more comprehensive program that                         *
+;* demonstrates the more advanced functionality of this          *
+;* processor, please see the demonstration applications          *
+;* located in the examples subdirectory of the                   *
+;* Freescale CodeWarrior for the HC12 Program directory          *
+;*****************************************************************
+
+; export symbols
+            XDEF Entry, _Startup            ; export 'Entry' symbol
+            ABSENTRY Entry        ; for absolute assembly: mark this as application entry point
+
+
+
+; Include derivative-specific definitions 
+		INCLUDE 'derivative.inc' 
+
+ROMStart    EQU  $4000  ; absolute address to place my code/constant data
+
+; variable/data section
+
+            ORG RAMStart
+
+
+; code section
+            ORG   ROMStart
+
+
+Entry:
+_Startup:
+            LDS   #RAMEnd+1       ; initialize the stack pointer
+
+            CLI                     ; enable interrupts
+            
+            
+
+;Set Port T as input
+            LDAA #$00
+            STAA DDRT
+  
+;Set Port AD as output
+            LDAA #$FF
+            STAA DDRAD 
+
+;Initial Compare 
+
+InitialCompare:
+
+            LDAA PTIT               ;Read input
+            CMPA #%01               ;If it is 01, go to the Left to Right Subroutine
+            BEQ LeftToRight
+            CMPA #%10               ;If it is 10, go to the Right to Left Subroutine
+            LBEQ RightToLeft         
+            CMPA #%100              ;If it is 100, go to the Center Out Subroutine
+            LBEQ CenterOut           
+            BRA InvalidComb         ;If it is neither, go to Invalid Comb
+            
+ InvalidComb:
+ 
+            NOP
+            JSR Delay
+            BRA InitialCompare
+            
+            
+ CompareLTR:
+            LDAA PTIT
+            CMPA #%10               ;If it is 10, go to the Right to Left Subroutine
+            BEQ RightToLeft         
+            CMPA #%100              ;If it is 100, go to the Center Out Subroutine
+            LBEQ CenterOut
+            RTS
+ 
+ ;Left to Right Subroutine
+ 
+ LeftToRight:
+ 
+            LDAA #128
+            STAA PTAD
+            JSR Delay 
+            JSR CompareLTR
+            
+            LDAA #64
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            LDAA #32
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            LDAA #16
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            LDAA #8
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            LDAA #4
+            STAA PTAD
+            JSR Delay 
+            JSR CompareLTR
+            
+            LDAA #2
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            LDAA #1
+            STAA PTAD 
+            JSR Delay
+            JSR CompareLTR
+            
+            BRA LeftToRight     
+           
+            
+            
+  CompareRTL:
+            LDAA PTIT               ;Read input
+            CMPA #%01               ;If it is 01, go to the Left to Right Subroutine
+            BEQ LeftToRight
+            CMPA #%100              ;If it is 100, go to the Center Out Subroutine
+            BEQ CenterOut           
+            RTS
+            
+ ;Right to Left Subroutine
+ 
+  RightToLeft:
+ 
+            LDAA #1
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #2
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #4
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #8
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #16
+            STAA PTAD
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #32
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #64
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            LDAA #128
+            STAA PTAD 
+            JSR Delay
+            JSR CompareRTL
+            
+            BRA RightToLeft   
+            
+            
+ CompareCenter:
+ 
+            LDAA PTIT               ;Read input
+            CMPA #%01               ;If it is 01, go to the Left to Right Subroutine
+            LBEQ LeftToRight
+            CMPA #%10               ;If it is 10, go to the Right to Left Subroutine
+            BEQ RightToLeft 
+            RTS      
+ 
+ ;Center Out Subroutine
+ 
+ 
+ CenterOut:
+ 
+            LDAA #24
+            STAA PTAD 
+            JSR Delay
+            JSR CompareCenter
+            
+            LDAA #36
+            STAA PTAD 
+            JSR Delay
+            JSR CompareCenter
+            
+            LDAA #66
+            STAA PTAD 
+            JSR Delay
+            JSR CompareCenter
+            
+            LDAA #129
+            STAA PTAD 
+            JSR Delay
+            JSR CompareCenter
+
+            BRA CenterOut
+            
+ 
+ Delay:    
+            LDAB #$0000
+ Delay0:
+            LDX #$0000
+ Delay1:
+            INX  
+            CPX #$FFFF
+            BEQ Counter
+            BRA Delay1
+            
+ Counter:   
+            INCB 
+            CMPB #5
+            BEQ Done
+            BRA Delay0
+ 
+ Done:              
+            RTS
+;**************************************************************
+;*                 Interrupt Vectors                          *
+;**************************************************************
+            ORG   $FFFE
+            DC.W  Entry           ; Reset Vector
