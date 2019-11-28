@@ -1,3 +1,7 @@
+;Authors: José Mata (JMata28) and Kaleb Golden
+;The following code finds the maximum, minimum, and average numbers of a group of eight numbers, included in the code itself. ;Afterwards, we implemented the rest of the circuit board connected to the microcontroller by writing additional code and wiring the ;microcontroller to light up the board’s LEDs with the number calculated on the second part.  
+
+
 ;*****************************************************************
 ;* This stationery serves as the framework for a                 *
 ;* user application (single file, absolute assembly application) *
