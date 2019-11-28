@@ -1,0 +1,118 @@
+;*****************************************************************
+;* This stationery serves as the framework for a                 *
+;* user application (single file, absolute assembly application) *
+;* For a more comprehensive program that                         *
+;* demonstrates the more advanced functionality of this          *
+;* processor, please see the demonstration applications          *
+;* located in the examples subdirectory of the                   *
+;* Freescale CodeWarrior for the HC12 Program directory          *
+;*****************************************************************
+
+; export symbols
+            XDEF Entry, _Startup            ; export 'Entry' symbol
+            ABSENTRY Entry        ; for absolute assembly: mark this as application entry point
+
+
+
+; Include derivative-specific definitions 
+		INCLUDE 'derivative.inc' 
+
+ROMStart    EQU  $4000  ; absolute address to place my code/constant data
+TDRE EQU %10000000      ;Make a mask for bit TDRE
+RDRF EQU %00100000      ;Make a mask for bit RDRF
+LETA EQU 97             ;Give letters values for their appropriate ASCII codes
+LETB EQU 98
+LETE EQU 101
+LETG EQU 103
+LETI EQU 105
+LETL EQU 108
+LETM EQU 109
+LETN EQU 110
+LETO EQU 111
+LETP EQU 112
+LETY EQU 121
+SPACE EQU 32
+
+
+; variable/data section
+
+            ORG RAMStart
+ ; Insert here your data definition.
+
+
+
+; code section
+            ORG   ROMStart
+
+
+Entry:
+_Startup:
+            LDS   #RAMEnd+1       ; initialize the stack pointer
+
+            CLI                     ; enable interrupts
+            
+            LDAA #%00001100        ;Enable TE and RE (Transmitter and Receiver)
+            STAA SCICR2
+            
+            LDAA #$00              ;Set M bit to be zero (one start, eight data, and one stop bit)
+            STAA SCICR1
+            
+            STAA SCIBDH             ;Set baud rate to be 9600 (Store 52 in the registers)
+            NOP
+            LDAA #%00110100
+            NOP
+            STAA SCIBDL
+            NOP 
+            
+            ;LDX #$0900              ;Initialize pointer
+            ;LDY #0                  ;Initialize counter
+            
+Get_Char: 
+WaitForChar:
+            JSR Read_Ready
+            BCC WaitForChar          ;If the carry bit is zero, branch to WaitForChar
+            LDAB SCIDRL              ;Store value in accumulator A   
+            BRA Write_Ready
+Read_Ready:            
+            CLC                      ;Clear Carry
+            CLRA                     ;Clear A
+            CLRB                     ;Clear B
+            
+            BRCLR SCISR1,RDRF,Not_available  ;Check to see if data is available. If it isn't, branch to Not_available
+            LDAB  SCIDRL             ;Store the data in accumulator B
+            LDAA SCISR1              ;Store the status in accumulator A
+            SEC                      ;Set the carry bit
+            
+            
+ Not_available: RTS
+ 
+ ;While_Do: 
+ ;           LDAB 0,X                ;B is loaded with the value in memory address x+0 
+                                    ;If B is zero, then branch to Done. X is the value of the memory where the letter is at 
+ ;           CMPB #$00
+  ;          BEQ Done
+  ;          JSR TransmitEmpty       ;If B is not zero,display the next character
+  ;          INY                     ; Increase the counter and the pointer 
+  ;          INX 
+  ;          BRA While_Do
+            
+ ;Done: 
+  ;          LDAB #$00                ;Loop indefinitely
+   ;         BRA While_Do
+                       
+ Write_Ready: 
+            brclr SCISR1,TDRE, Write_Ready  ;Wait until the transmit data register is empty and then output a character
+            STAB SCIDRL                       ;Output the value in accumulator B 
+            BRA Get_Char
+ 
+ 
+         
+
+;**************************************************************
+;*                 Interrupt Vectors                          *
+;**************************************************************
+            ORG   $FFFE
+            DC.W  Entry           ; Reset Vector
+           ; ORG $0900             ;Alocate 17 bytes of information, starting at location $0900 with the name String
+            ;String:     DS.B 1
+            
