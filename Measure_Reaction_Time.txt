@@ -1,3 +1,16 @@
+;Author: José Mata (JMata28) and Kaleb Golden
+
+;For this lab assignment, the microcontroller will be programmed to test the user’s reaction time after the board lights an LED, which
+;we chose to be LED1. To do this, the program first waits a set period of time from two to five seconds, which we set to be around four
+;seconds, while all the LEDs are off and after this period passes, LED1 lights up. When LED1 lights up, the user must press one of the
+;board’s buttons, PB2 in our case, as fast as possible. 
+;The LEDs will then light up showing the number of Time Overflow Flags (TOF) that passed in the time between the LED being lit and when
+;the user pressed the button. Simply put, these flags can be used to calculate the amount of time that it took the user to react and
+;press the button. The LEDs lit with the binary representation of the number of TOF will remain lit until the user lets go off the
+;button. When the button is let go, all the LEDs will turn off and the entire process starts again, beginning with the four-second delay
+;period.
+
+
 ;*****************************************************************
 ;* This stationery serves as the framework for a                 *
 ;* user application (single file, absolute assembly application) *
