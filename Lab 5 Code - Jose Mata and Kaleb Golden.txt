@@ -1,0 +1,149 @@
+;*****************************************************************
+;* This stationery serves as the framework for a                 *
+;* user application (single file, absolute assembly application) *
+;* For a more comprehensive program that                         *
+;* demonstrates the more advanced functionality of this          *
+;* processor, please see the demonstration applications          *
+;* located in the examples subdirectory of the                   *
+;* Freescale CodeWarrior for the HC12 Program directory          *
+;*****************************************************************
+
+; export symbols
+            XDEF Entry, _Startup            ; export 'Entry' symbol
+            ABSENTRY Entry        ; for absolute assembly: mark this as application entry point
+
+
+
+; Include derivative-specific definitions 
+		INCLUDE 'derivative.inc' 
+		
+ROMStart    EQU  $4000  ; absolute address to place my code/constant data
+SEC_4: EQU 240
+ResetVariable: EQU $00
+
+; variable/data section
+
+            ORG RAMStart
+ ; Insert here your data definition.
+SEC_4Counter: DS.B 1
+TimePassed: DS.B 1 
+FlagCount: DS.B 1
+NowCount: DS.B 1
+
+; code section
+            ORG   ROMStart
+
+
+Entry:
+_Startup:
+            LDS   #RAMEnd+1       ; initialize the stack pointer
+
+            CLI                   ; enable interrupts
+            
+ ;Set port AD as output
+              
+            LDAA #$FF
+            STAA DDRAD
+            
+ ;Set port T as input
+            LDAA #$00
+            STAA DDRT
+            
+            
+            
+ ;This loop repeats the entire program
+ 
+  Begin:
+            MOVB #ResetVariable, FlagCount            ;Give FlagCount, TimePassed, and NowCount all-zero values
+            
+            MOVB #ResetVariable, TimePassed
+            
+            MOVB #ResetVariable, NowCount  
+  
+            LDAA #$00              ;Turn all the LEDs off
+            STAA PTAD
+            
+            MOVB #SEC_4,SEC_4Counter  ;Give SEC_4 Counter the value of 240
+            
+            LDAA #%10000000        ;Enable the timer
+            STAA TSCR1
+            
+            LDAA #%10000000        ;Reset time overflow flag (TOF) 
+            STAA TFLG2              
+            
+            LDAA #%10000001        ;Enable the interrupt (TOI)
+            STAA TSCR2
+            
+            
+ MainLoop:          
+            Wai                     ;Wait for interrupt  
+  
+            LDAB #%10000000         ;If the time hasn't passed, branch to MainLoop
+            CMPB TimePassed         ;If time passed, branch to LightLED
+            BEQ LightLED    
+            BRA MainLoop
+ 
+ DelayOrCount:  LDAA #%10000000     ;Check if we are doing the delay or the counting
+                CMPA NowCount       ;If NowCount is %10000000, we are counting, else we are delaying
+                BEQ CountInc
+ 
+                DEC SEC_4Counter      ;Decerement the counter
+                
+                BNE ContinueDelay     ;If the counter is not zero, go to ContinueDelay 
+                
+                LDAA #%10000000
+                STAA TimePassed       ;If the time has passed, set the first bit of TimePassed 
+                
+                BRA ContinueDelay
+                
+ ContinueDelay: 
+                LDAA #%10000000        ;Reset time overflow flag     
+                STAA TFLG2 
+                
+                RTI                    ;Return to main program
+                
+ CountInc:      INC FlagCount          ;Increment the counter 
+                LDAA #%10000000        ;Reset time overflow flag     
+                STAA TFLG2 
+                RTI                  
+                
+                
+ LightLED:      LDAA #%00000001        ;Turn LED1 ON (LSB of port AD)
+                STAA PTAD
+                LDAA #%10000000        ;Reset time overflow flag (TOF) 
+                STAA TFLG2
+                STAA NowCount          ;Make the value of NowCount %10000000
+                
+                BRA CheckButton        ;Check if the button is pressed
+ 
+           
+ CheckButton:
+             LDAA PTIT               ;Read input from port T
+             CMPA #%00000000         ;Compare with all zeroes (what it would be if the button were pressed)
+             BEQ DisplayTime         ;Branch to DisplayTime if it is pressed
+             BRA CheckButton         ;If the button isn't pressed, branch back to CheckButton to check again
+             
+ DisplayTime: 
+               LDAA #%00000001       ;Disable the the interrupt (TOI) and leave the prescale unchanged
+               STAA TSCR2
+               LDAA FlagCount        ;Load the number of times that TOF was set
+               STAA PTAD             ;Store FlagCount to LEDs
+               LDAB PTIT             ;Check the button status to see when it is unpressed
+               CMPB #%00000000
+               BEQ DisplayTime       ;If it is still pressed, the LEDs will still display the TOF counter
+               BRA Begin             ;If it is unpressed, it will start all over
+             
+             
+             
+             
+             
+;**************************************************************
+;*                 Interrupt Vectors                          *
+;**************************************************************
+            ORG   $FFDE           ;Initialize the vector for the TOF interrupt
+            DC.W  DelayOrCount
+
+            ORG   $FFFE
+            DC.W  Entry           ; Reset Vector
+
+    
