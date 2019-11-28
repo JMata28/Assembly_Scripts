@@ -1,0 +1,2 @@
+# Customizable Digital Clock
+The project consisted of building a fully functioning digital clock using an HCS12 Microcontroller and a limited budget to select and buy the necessary component from a given list. The list included encoders, decoders, resistors, 8 and 16-segment displays, and more. The clock was built with functional hours, minutes, and seconds with the ability to use different buttons in the microcontroller's board to increase and decrease hours and minutes. 
