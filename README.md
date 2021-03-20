@@ -1,2 +1,2 @@
-# Assembly_Scripts
+# Assembly_Programs
 This repository includes code in assembly language for the HCS12 microcontroller. Each of the scripts achieves a different function and the microcontroller is to be connected to a board with LEDs, buttons, potentiometers, and more. There is specific wiring and setup of hardware for each of the scripts required for the code to work. However, from a software point of view, the scripts describe and carry out the processes required. CodeWarrior software was used to load the code to the microcontroller.
